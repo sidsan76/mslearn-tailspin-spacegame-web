@@ -32,28 +32,28 @@ steps:
   displayName: 'Write build info'
   workingDirectory: $(wwwrootDir)
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@3
   displayName: 'Restore project dependencies'
   inputs:
     command: 'restore'
     projects: '**/*.csproj'
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@3
   displayName: 'Build the project - $(buildConfiguration)'
   inputs:
     command: 'build'
     arguments: '--no-restore --configuration $(buildConfiguration)'
     projects: '**/*.csproj'
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@3
   displayName: 'Run unit tests - $(buildConfiguration)'
   inputs:
     command: 'test'
     arguments: '--no-build --configuration $(buildConfiguration)'
     publishTestResults: true
-    projects: '**/*.Tests.csproj'    
+    projects: '**/*.Tests.csproj'  
 
-- task: DotNetCoreCLI@2
+- task: DotNetCoreCLI@3
   displayName: 'Publish the project - $(buildConfiguration)'
   inputs:
     command: 'publish'
