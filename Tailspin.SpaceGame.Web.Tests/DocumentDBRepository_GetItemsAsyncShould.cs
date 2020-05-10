@@ -7,12 +7,18 @@ using NUnit.Framework;
 using TailSpin.SpaceGame.Web;
 using TailSpin.SpaceGame.Web.Models;
 
+using Microsoft.Azure.KeyVault;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+
 namespace Tests
 {
     public class DocumentDBRepository_GetItemsAsyncShould
     {
         private IDocumentDBRepository<Score> _scoreRepository;
 
+        
         [SetUp]
         public void Setup()
         {
@@ -54,8 +60,36 @@ namespace Tests
         [TestCase("KeyVaultTest")]
         public void KeyVaultTest(string gameRegion)
         {
+                        // kvURL must be updated to the URL of your key vault
+            string kvURL = "https://testvaultpoc.vault.azure.net";
+
+            // <authentication>
+
+            string clientId = "56a49dc5-65f2-476c-8158-2f4867eea9ce";
+            string clientSecret = "u80Js/93GDWbjjQU_wwQ.zyzKuLRrG-Q";
+
+            KeyVaultClient kvClient = new KeyVaultClient(async (authority, resource, scope) =>
+            {
+                var adCredential = new ClientCredential(clientId, clientSecret);
+                var authenticationContext = new AuthenticationContext(authority, null);
+                return (await authenticationContext.AcquireTokenAsync(resource, adCredential)).AccessToken;
+            });
+            // </authentication>
+
+            var fetchedSecret = GetSecret(kvClient, kvURL, "vehicle");
+
+            string secretValue = fetchedSecret.Result;
+
             // Verify that each score's game region matches the provided game region.
-            Assert.AreEqual(1,1);
+            Assert.AreEqual(secretValue,"maruti");
+        }
+
+        public async Task<string> GetSecret(KeyVaultClient kvClient, string kvURL, string secretName)
+        {
+            // <getsecret>                
+            var keyvaultSecret = await kvClient.GetSecretAsync($"{kvURL}", secretName).ConfigureAwait(false);
+            // </getsecret>
+            return keyvaultSecret.Value;
         }
     }
 }
