@@ -7,10 +7,13 @@ using NUnit.Framework;
 using TailSpin.SpaceGame.Web;
 using TailSpin.SpaceGame.Web.Models;
 
-using Microsoft.Azure.KeyVault;
-using Microsoft.IdentityModel.Clients.ActiveDirectory;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+// using Microsoft.Azure.KeyVault;
+// using Microsoft.IdentityModel.Clients.ActiveDirectory;
+// using Microsoft.Azure.Management.ResourceManager.Fluent;
+// using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 
 namespace Tests
 {
@@ -61,35 +64,49 @@ namespace Tests
         public void KeyVaultTest(string gameRegion)
         {
                         // kvURL must be updated to the URL of your key vault
-            string kvURL = "https://testvaultpoc.vault.azure.net";
+            string kvURL = "https://testvaultpoc.vault.azure.net/";
 
             // <authentication>
 
             string clientId = "56a49dc5-65f2-476c-8158-2f4867eea9ce";
             string clientSecret = "u80Js/93GDWbjjQU_wwQ.zyzKuLRrG-Q";
 
-            KeyVaultClient kvClient = new KeyVaultClient(async (authority, resource, scope) =>
-            {
-                var adCredential = new ClientCredential(clientId, clientSecret);
-                var authenticationContext = new AuthenticationContext(authority, null);
-                return (await authenticationContext.AcquireTokenAsync(resource, adCredential)).AccessToken;
-            });
-            // </authentication>
+            // KeyVaultClient kvClient = new KeyVaultClient(async (authority, resource, scope) =>
+            // {
+            //     var adCredential = new ClientCredential(clientId, clientSecret);
+            //     var authenticationContext = new AuthenticationContext(authority, null);
+            //     return (await authenticationContext.AcquireTokenAsync(resource, adCredential)).AccessToken;
+            // });
+            // // </authentication>
 
-            var fetchedSecret = GetSecret(kvClient, kvURL, "vehicle");
+            // var fetchedSecret = GetSecret(kvClient, kvURL, "vehicle");
 
-            string secretValue = fetchedSecret.Result;
+            // string secretValue = fetchedSecret.Result;
+
+            SecretClientOptions options = new SecretClientOptions()
+                {
+                    Retry =
+                    {
+                        Delay= TimeSpan.FromSeconds(2),
+                        MaxDelay = TimeSpan.FromSeconds(16),
+                    }
+                };
+            var client = new SecretClient(new Uri(kvURL), new DefaultAzureCredential(),options);
+
+            KeyVaultSecret secret = client.GetSecret("vehicle");
+
+            string secretValue = secret.Value;
 
             // Verify that each score's game region matches the provided game region.
             Assert.AreEqual(secretValue,"maruti");
         }
 
-        public async Task<string> GetSecret(KeyVaultClient kvClient, string kvURL, string secretName)
-        {
-            // <getsecret>                
-            var keyvaultSecret = await kvClient.GetSecretAsync($"{kvURL}", secretName).ConfigureAwait(false);
-            // </getsecret>
-            return keyvaultSecret.Value;
-        }
+        // public async Task<string> GetSecret(KeyVaultClient kvClient, string kvURL, string secretName)
+        // {
+        //     // <getsecret>                
+        //     var keyvaultSecret = await kvClient.GetSecretAsync($"{kvURL}", secretName).ConfigureAwait(false);
+        //     // </getsecret>
+        //     return keyvaultSecret.Value;
+        // }
     }
 }
