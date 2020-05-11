@@ -48,12 +48,6 @@ steps:
     arguments: '--no-restore --configuration $(buildConfiguration)'
     projects: '**/*.csproj'
 
-- task: AzureKeyVault@1
-  inputs:
-    azureSubscription: 'KeyVaultConnection'
-    KeyVaultName: 'TestVaultPoC'
-    SecretsFilter: '*'
-
 - task: DotNetCoreCLI@2
   displayName: 'Run unit tests - $(buildConfiguration)'
   inputs:
