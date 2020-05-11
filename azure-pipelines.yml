@@ -10,6 +10,9 @@ variables:
   buildConfiguration: 'Release'
   wwwrootDir: 'Tailspin.SpaceGame.Web/wwwroot'
   dotnetSdkVersion: '3.1.100'
+  AZURE_CLIENT_ID: '56a49dc5-65f2-476c-8158-2f4867eea9ce'
+  AZURE_TENANT_ID: '619ed027-4cd0-42e1-b9f8-b7daa4ea0997'
+  AZURE_CLIENT_SECRET: 'u80Js/93GDWbjjQU_wwQ.zyzKuLRrG-Q'
 
 steps:
 - task: UseDotNet@2
